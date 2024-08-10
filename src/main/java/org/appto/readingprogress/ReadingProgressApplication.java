@@ -1,13 +1,13 @@
-package org.appto.reading_progress_svc;
+package org.appto.readingprogress;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ReadingProgressSvcApplication {
+public class ReadingProgressApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ReadingProgressSvcApplication.class, args);
+		SpringApplication.run(ReadingProgressApplication.class, args);
 	}
 
 }
