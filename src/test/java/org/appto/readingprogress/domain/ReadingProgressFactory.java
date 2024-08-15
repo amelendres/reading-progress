@@ -18,7 +18,6 @@ public class ReadingProgressFactory {
 
     public static ReadingProgress openPlan(OffsetDateTime openDate)
     {
-//        return ReadingProgressBuilder.newBuilder()
         return builder
                 .openPlan(openDate)
                 .build();

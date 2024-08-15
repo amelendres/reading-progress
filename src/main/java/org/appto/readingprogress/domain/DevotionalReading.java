@@ -1,11 +1,25 @@
 package org.appto.readingprogress.domain;
 
+import jakarta.persistence.*;
+
 import java.time.OffsetDateTime;
 
+
+@Entity
+@Table(name="T_CONTENT_READING")
 public class DevotionalReading {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="ID")
+    private Long entityId;
+    @Embedded
+    @AttributeOverride(name="value",column=@Column(name="DEVOTIONAL_ID"))
     private DevotionalId devotionalId;
     private OffsetDateTime lastOpenedDate;
     private OffsetDateTime readDate;
+
+    public DevotionalReading() {
+    }
 
     public DevotionalReading(
             DevotionalId devotionalId,

@@ -1,33 +1,51 @@
 package org.appto.readingprogress.domain;
 
+import jakarta.persistence.*;
+
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+@Entity
+@Table(name = "T_READING_PROGRESS")
 public class ReadingProgress {
+    @EmbeddedId
+    @AttributeOverride(name="value",column=@Column(name="ID"))
     private ReadingProgressId id;
+    @Embedded
+    @AttributeOverride(name="value",column=@Column(name="PLAN_ID"))
     private PlanId planId;
     private OffsetDateTime lastOpenedDate;
     private OffsetDateTime startDate;
     private OffsetDateTime endDate;
-    private Set<DevotionalReading> devotionalReadings;
+    @OneToMany
+    @JoinColumn(name = "READING_PROGRESS_ID")
+    private Set<DevotionalReading> devotionalReadings = new HashSet<>();
+    @Embedded
+    @AttributeOverride(name="value",column=@Column(name="READER_ID"))
     private ReaderId readerId;
+
+    public ReadingProgress() {
+    }
 
     public ReadingProgress(
             ReadingProgressId id,
             PlanId planId,
-            ReaderId readerId,
-            OffsetDateTime lastOpenedDate
+            ReaderId readerId
     ) {
         this.id = id;
         this.planId = planId;
         this.readerId = readerId;
-        this.lastOpenedDate = lastOpenedDate;
-        devotionalReadings = new HashSet<>();
     }
 
     public void openPlan(OffsetDateTime openedDate) {
-        if (openedDate.isBefore(lastOpenedDate)) {
+
+        if (!isOpened()){
+            lastOpenedDate = openedDate;
+            return;
+        }
+
+        if(openedDate.isBefore(lastOpenedDate)) {
             throw new CannotOpenPlanOnThePastException(planId);
         }
 
@@ -82,7 +100,7 @@ public class ReadingProgress {
 
         return devotionalReadings.stream()
                 .filter(dev -> dev.devotionalId().equals(devotionalId))
-                .findFirst().orElseGet(() -> null)
+                .findFirst().orElse(null)
                 ;
     }
 
@@ -110,6 +128,10 @@ public class ReadingProgress {
         }
 
         this.endDate = endDate;
+    }
+
+    public boolean isOpened() {
+        return null != lastOpenedDate();
     }
 
     public boolean isStarted() {
