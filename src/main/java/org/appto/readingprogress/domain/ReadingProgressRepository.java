@@ -5,8 +5,8 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.Optional;
 
 public interface ReadingProgressRepository extends CrudRepository<ReadingProgress, ReadingProgressId> {
-    default ReadingProgress findByIdOrThrow(String readingProgressId){
-        return findById(new ReadingProgressId(readingProgressId)).orElseThrow();
+    default ReadingProgress findByIdOrThrow(ReadingProgressId id){
+        return findById(id).orElseThrow();
     }
 
     Optional<ReadingProgress> findByPlanIdAndReaderId(PlanId planId, ReaderId readerId);

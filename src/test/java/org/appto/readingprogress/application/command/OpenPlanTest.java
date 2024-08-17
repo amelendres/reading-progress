@@ -102,7 +102,6 @@ class OpenPlanTest {
                 () -> openPlan.execute(req)
         );
 
-
         verify(repo).findByPlanIdAndReaderId(any(PlanId.class), any(ReaderId.class));
     }
 }
