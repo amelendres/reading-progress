@@ -1,9 +1,9 @@
 package org.appto.readingprogress.domain;
 
-public record DevotionalId(String value){
-    public DevotionalId {
+public record ContentId(String value){
+    public ContentId {
         if (null == value) {
-            throw new IllegalArgumentException("Invalid DevotionalId <null>");
+            throw new IllegalArgumentException("Invalid ContentId <null>");
         }
         java.util.UUID.fromString(value);
     }

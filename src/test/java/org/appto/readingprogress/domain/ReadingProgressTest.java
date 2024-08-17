@@ -19,7 +19,7 @@ class ReadingProgressTest {
 
             assertNotNull(readingProgress.lastOpenedDate());
             assertNull(readingProgress.startDate());
-            assertTrue(readingProgress.devotionalReadings().isEmpty());
+            assertTrue(readingProgress.contentReadings().isEmpty());
             assertNotNull(readingProgress.readerId());
             assertNotNull(readingProgress.planId());
         }
@@ -32,7 +32,7 @@ class ReadingProgressTest {
 
             assertSame(readingProgress.lastOpenedDate(), reOpenedDate);
             assertNull(readingProgress.startDate());
-            assertTrue(readingProgress.devotionalReadings().isEmpty());
+            assertTrue(readingProgress.contentReadings().isEmpty());
         }
 
         @Test
@@ -56,7 +56,7 @@ class ReadingProgressTest {
 
             assertNotNull(readingProgress.startDate());
             assertNull(readingProgress.endDate());
-            assertTrue(readingProgress.devotionalReadings().isEmpty());
+            assertTrue(readingProgress.contentReadings().isEmpty());
         }
 
         @Test
@@ -84,162 +84,162 @@ class ReadingProgressTest {
 
 
     @Nested
-    class OpenDevotional {
+    class OpenContent {
 
         @Test
-        void testSuccessOpenDevotional() {
+        void testSuccessOpenContent() {
             var readingProgress = ReadingProgressFactory.startPlan();
-            var devotionalId = new DevotionalId("de54378b-d101-4864-bc4d-471a0d03f300");
-            var openDateDevotional = Instant.now().atOffset(ZoneOffset.UTC);
+            var devotionalId = new ContentId("de54378b-d101-4864-bc4d-471a0d03f300");
+            var openDateContent = Instant.now().atOffset(ZoneOffset.UTC);
 
-            readingProgress.openDevotional(devotionalId, openDateDevotional);
+            readingProgress.openContent(devotionalId, openDateContent);
 
-            assertEquals(1, readingProgress.devotionalReadings().size());
-            assertTrue(readingProgress.devotionalReading(devotionalId).isOpen());
-            assertFalse(readingProgress.devotionalReading(devotionalId).isRead());
-            assertSame(openDateDevotional, readingProgress.devotionalReading(devotionalId).lastOpenedDate());
+            assertEquals(1, readingProgress.contentReadings().size());
+            assertTrue(readingProgress.contentReading(devotionalId).isOpen());
+            assertFalse(readingProgress.contentReading(devotionalId).isRead());
+            assertSame(openDateContent, readingProgress.contentReading(devotionalId).lastOpenedDate());
         }
 
         @Test
-        void testFailsOpenDevotionalUnStartedPlan() {
+        void testFailsOpenContentUnStartedPlan() {
             var readingProgress = ReadingProgressFactory.openPlan();
-            var devotionalId = new DevotionalId("de54378b-d101-4864-bc4d-471a0d03f300");
-            var openDateDevotional = Instant.now().atOffset(ZoneOffset.UTC);
+            var devotionalId = new ContentId("de54378b-d101-4864-bc4d-471a0d03f300");
+            var openDateContent = Instant.now().atOffset(ZoneOffset.UTC);
 
-            assertThrows(CannotOpenDevotionalUnStartedPlanException.class, () -> {
-                readingProgress.openDevotional(devotionalId, openDateDevotional);
+            assertThrows(CannotOpenContentOnNotStartedPlanException.class, () -> {
+                readingProgress.openContent(devotionalId, openDateContent);
             });
         }
 
         @Test
-        void testFailsOpenDevotionalBeforePlanStartedDate() {
+        void testFailsOpenContentBeforePlanStartedDate() {
             var readingProgress = ReadingProgressFactory.startPlan();
-            var devotionalId = new DevotionalId("de54378b-d101-4864-bc4d-471a0d03f300");
+            var devotionalId = new ContentId("de54378b-d101-4864-bc4d-471a0d03f300");
             var pastDate = readingProgress.startDate().minusDays(1L);
 
-            assertThrows(CannotOpenDevotionalBeforeStartPlanException.class, () -> {
-                readingProgress.openDevotional(devotionalId, pastDate);
+            assertThrows(CannotOpenContentBeforePlanStartDateException.class, () -> {
+                readingProgress.openContent(devotionalId, pastDate);
             });
         }
 
         @Test
-        void testSuccessReOpenDevotional() {
+        void testSuccessReOpenContent() {
             var readingProgress = ReadingProgressFactory.startPlan(
                     Instant.now().atOffset(ZoneOffset.UTC).minusDays(10L),
                     Instant.now().atOffset(ZoneOffset.UTC).minusDays(5L)
             );
-            var devotionalId = new DevotionalId("de54378b-d101-4864-bc4d-471a0d03f300");
-            var openDateDevotional = Instant.now().atOffset(ZoneOffset.UTC).minusDays(4L);
-            readingProgress.openDevotional(devotionalId, openDateDevotional);
+            var devotionalId = new ContentId("de54378b-d101-4864-bc4d-471a0d03f300");
+            var openDateContent = Instant.now().atOffset(ZoneOffset.UTC).minusDays(4L);
+            readingProgress.openContent(devotionalId, openDateContent);
 
-            var reOpenDateDevotional = Instant.now().atOffset(ZoneOffset.UTC).minusDays(3L);
-            readingProgress.openDevotional(devotionalId, reOpenDateDevotional);
+            var reOpenDateContent = Instant.now().atOffset(ZoneOffset.UTC).minusDays(3L);
+            readingProgress.openContent(devotionalId, reOpenDateContent);
 
-            assertSame(reOpenDateDevotional, readingProgress.devotionalReading(devotionalId).lastOpenedDate());
-            assertTrue(readingProgress.devotionalReading(devotionalId).isOpen());
-            assertFalse(readingProgress.devotionalReading(devotionalId).isRead());
+            assertSame(reOpenDateContent, readingProgress.contentReading(devotionalId).lastOpenedDate());
+            assertTrue(readingProgress.contentReading(devotionalId).isOpen());
+            assertFalse(readingProgress.contentReading(devotionalId).isRead());
         }
 
         @Test
-        void testFailReOpenDevotionalOnThePast() {
+        void testFailReOpenContentOnThePast() {
             var readingProgress = ReadingProgressFactory.startPlan(
                     Instant.now().atOffset(ZoneOffset.UTC).minusDays(10L),
                     Instant.now().atOffset(ZoneOffset.UTC).minusDays(5L)
             );
-            var devotionalId = new DevotionalId("de54378b-d101-4864-bc4d-471a0d03f300");
-            var openDateDevotional = Instant.now().atOffset(ZoneOffset.UTC);
-            readingProgress.openDevotional(devotionalId, openDateDevotional);
-            var reOpenDateDevotional = Instant.now().atOffset(ZoneOffset.UTC).minusDays(4L);
+            var devotionalId = new ContentId("de54378b-d101-4864-bc4d-471a0d03f300");
+            var openDateContent = Instant.now().atOffset(ZoneOffset.UTC);
+            readingProgress.openContent(devotionalId, openDateContent);
+            var reOpenDateContent = Instant.now().atOffset(ZoneOffset.UTC).minusDays(4L);
 
-            assertThrows(CannotOpenDevotionalOnThePastException.class, () -> {
-                readingProgress.openDevotional(devotionalId, reOpenDateDevotional);
+            assertThrows(CannotOpenContentOnThePastException.class, () -> {
+                readingProgress.openContent(devotionalId, reOpenDateContent);
             });
         }
     }
 
     @Nested
-    class ReadDevotional {
+    class ReadContent {
         @Test
-        void testSuccessReadDevotional() {
+        void testSuccessReadContent() {
             //given
             var readingProgress = ReadingProgressFactory.startPlan(
                     Instant.now().atOffset(ZoneOffset.UTC).minusDays(10L),
                     Instant.now().atOffset(ZoneOffset.UTC).minusDays(5L)
             );
-            var devotionalId = new DevotionalId("de50378b-d101-4864-bc4d-471a0d03f300");
-            var openDateDevotional = Instant.now().atOffset(ZoneOffset.UTC).minusDays(4L);
-            var otherDevotionalId = new DevotionalId("de60378b-d101-4864-bc4d-471a0d03f300");
-            var openDateOtherDevotional = Instant.now().atOffset(ZoneOffset.UTC).minusDays(3L);
+            var devotionalId = new ContentId("de50378b-d101-4864-bc4d-471a0d03f300");
+            var openDateContent = Instant.now().atOffset(ZoneOffset.UTC).minusDays(4L);
+            var otherContentId = new ContentId("de60378b-d101-4864-bc4d-471a0d03f300");
+            var openDateOtherContent = Instant.now().atOffset(ZoneOffset.UTC).minusDays(3L);
 
-            readingProgress.openDevotional(devotionalId, openDateDevotional);
-            readingProgress.openDevotional(otherDevotionalId, openDateOtherDevotional);
+            readingProgress.openContent(devotionalId, openDateContent);
+            readingProgress.openContent(otherContentId, openDateOtherContent);
 
-            var readDateDevotional = Instant.now().atOffset(ZoneOffset.UTC).minusDays(2L);
+            var readDateContent = Instant.now().atOffset(ZoneOffset.UTC).minusDays(2L);
 
             //when
-            readingProgress.readDevotional(devotionalId, readDateDevotional);
+            readingProgress.readContent(devotionalId, readDateContent);
 
             //then
-            assertEquals(2, readingProgress.devotionalReadings().size());
-            assertTrue(readingProgress.devotionalReading(devotionalId).isOpen());
-            assertTrue(readingProgress.devotionalReading(devotionalId).isRead());
-            assertFalse(readingProgress.devotionalReading(otherDevotionalId).isRead());
-            assertSame(readDateDevotional, readingProgress.devotionalReading(devotionalId).readDate());
+            assertEquals(2, readingProgress.contentReadings().size());
+            assertTrue(readingProgress.contentReading(devotionalId).isOpen());
+            assertTrue(readingProgress.contentReading(devotionalId).isRead());
+            assertFalse(readingProgress.contentReading(otherContentId).isRead());
+            assertSame(readDateContent, readingProgress.contentReading(devotionalId).readDate());
         }
 
         @Test
-        void testFailsReadDevotionalWhenIsRead() {
+        void testFailsReadContentWhenIsRead() {
             //given
             var readingProgress = ReadingProgressFactory.startPlan(
                     Instant.now().atOffset(ZoneOffset.UTC).minusDays(10L),
                     Instant.now().atOffset(ZoneOffset.UTC).minusDays(5L)
             );
-            var devotionalId = new DevotionalId("de50378b-d101-4864-bc4d-471a0d03f300");
-            var openDateDevotional = Instant.now().atOffset(ZoneOffset.UTC).minusDays(4L);
+            var devotionalId = new ContentId("de50378b-d101-4864-bc4d-471a0d03f300");
+            var openDateContent = Instant.now().atOffset(ZoneOffset.UTC).minusDays(4L);
 
-            readingProgress.openDevotional(devotionalId, openDateDevotional);
+            readingProgress.openContent(devotionalId, openDateContent);
 
-            var readDateDevotional = Instant.now().atOffset(ZoneOffset.UTC).minusDays(2L);
-            readingProgress.readDevotional(devotionalId, readDateDevotional);
+            var readDateContent = Instant.now().atOffset(ZoneOffset.UTC).minusDays(2L);
+            readingProgress.readContent(devotionalId, readDateContent);
 
             //when/then
-            assertThrows(AlreadyReadDevotionalException.class, () -> {
-                readingProgress.readDevotional(devotionalId, readDateDevotional);
+            assertThrows(AlreadyReadContentException.class, () -> {
+                readingProgress.readContent(devotionalId, readDateContent);
             });
         }
 
         @Test
-        void testFailsReadDevotionalBeforeOpenDevotional() {
+        void testFailsReadContentBeforeOpenContent() {
             //given
             var readingProgress = ReadingProgressFactory.startPlan(
                     Instant.now().atOffset(ZoneOffset.UTC).minusDays(10L),
                     Instant.now().atOffset(ZoneOffset.UTC).minusDays(5L)
             );
-            var devotionalId = new DevotionalId("de50378b-d101-4864-bc4d-471a0d03f300");
-            var openDateDevotional = Instant.now().atOffset(ZoneOffset.UTC).minusDays(2L);
+            var devotionalId = new ContentId("de50378b-d101-4864-bc4d-471a0d03f300");
+            var openDateContent = Instant.now().atOffset(ZoneOffset.UTC).minusDays(2L);
 
-            readingProgress.openDevotional(devotionalId, openDateDevotional);
+            readingProgress.openContent(devotionalId, openDateContent);
 
-            var readDateDevotional = Instant.now().atOffset(ZoneOffset.UTC).minusDays(3L);
+            var readDateContent = Instant.now().atOffset(ZoneOffset.UTC).minusDays(3L);
 
             //when/then
-            assertThrows(CannotReadDevotionalBeforeOpenDevotionalException.class, () -> {
-                readingProgress.readDevotional(devotionalId, readDateDevotional);
+            assertThrows(CannotReadContentBeforeOpenItException.class, () -> {
+                readingProgress.readContent(devotionalId, readDateContent);
             });
         }
 
         @Test
-        void testFailsReadDevotionalWhenDevotionalNotExist() {
+        void testFailsReadContentWhenContentNotExist() {
             var readingProgress = ReadingProgressFactory.startPlan(
                     Instant.now().atOffset(ZoneOffset.UTC).minusDays(10L),
                     Instant.now().atOffset(ZoneOffset.UTC).minusDays(5L)
             );
-            var devotionalId = new DevotionalId("de50378b-d101-4864-bc4d-471a0d03f300");
-            var readDateDevotional = Instant.now().atOffset(ZoneOffset.UTC).minusDays(2L);
+            var devotionalId = new ContentId("de50378b-d101-4864-bc4d-471a0d03f300");
+            var readDateContent = Instant.now().atOffset(ZoneOffset.UTC).minusDays(2L);
 
             //when/then
-            assertThrows(DevotionalReadingNotFoundException.class, () -> {
-                readingProgress.readDevotional(devotionalId, readDateDevotional);
+            assertThrows(ContentReadingNotFoundException.class, () -> {
+                readingProgress.readContent(devotionalId, readDateContent);
             });
         }
     }
@@ -254,14 +254,14 @@ class ReadingProgressTest {
                     Instant.now().atOffset(ZoneOffset.UTC).minusDays(10L),
                     Instant.now().atOffset(ZoneOffset.UTC).minusDays(5L)
             );
-            var devotionalId = new DevotionalId("de50378b-d101-4864-bc4d-471a0d03f300");
-            var openDateDevotional = Instant.now().atOffset(ZoneOffset.UTC).minusDays(4L);
+            var devotionalId = new ContentId("de50378b-d101-4864-bc4d-471a0d03f300");
+            var openDateContent = Instant.now().atOffset(ZoneOffset.UTC).minusDays(4L);
 
-            readingProgress.openDevotional(devotionalId, openDateDevotional);
+            readingProgress.openContent(devotionalId, openDateContent);
 
-            var readDateDevotional = Instant.now().atOffset(ZoneOffset.UTC).minusDays(3L);
+            var readDateContent = Instant.now().atOffset(ZoneOffset.UTC).minusDays(3L);
 
-            readingProgress.readDevotional(devotionalId, readDateDevotional);
+            readingProgress.readContent(devotionalId, readDateContent);
 
             var endDate = Instant.now().atOffset(ZoneOffset.UTC).minusDays(2L);
 
@@ -269,10 +269,10 @@ class ReadingProgressTest {
             readingProgress.finishPlan(endDate);
 
             //then
-            assertEquals(1, readingProgress.devotionalReadings().size());
+            assertEquals(1, readingProgress.contentReadings().size());
             assertNotNull(readingProgress.endDate());
             assertTrue(readingProgress.isFinished());
-            assertTrue(readingProgress.devotionalReading(devotionalId).isRead());
+            assertTrue(readingProgress.contentReading(devotionalId).isRead());
         }
 
         @Test
@@ -299,50 +299,50 @@ class ReadingProgressTest {
         }
 
         @Test
-        void testFailFinishStartedPlanWithoutDevotionalReadings() {
+        void testFailFinishStartedPlanWithoutContentReadings() {
             var readingProgress = ReadingProgressFactory.startPlan();
             var endDate = Instant.now().atOffset(ZoneOffset.UTC);
 
             //when/then
-            assertThrows(CannotFinishPlanWithoutDevotionalsException.class, () -> {
+            assertThrows(CannotFinishPlanWithEmptyContentReadingsException.class, () -> {
                 readingProgress.finishPlan(endDate);
             });
         }
 
         @Test
-        void testFailsFinishPlanWhenADevotionalIsNotRead() {
+        void testFailsFinishPlanWhenAContentIsNotRead() {
             //given
             var readingProgress = ReadingProgressFactory.startPlan(
                     Instant.now().atOffset(ZoneOffset.UTC).minusDays(10L),
                     Instant.now().atOffset(ZoneOffset.UTC).minusDays(5L)
             );
-            var devotionalId = new DevotionalId("de50378b-d101-4864-bc4d-471a0d03f300");
-            var openDateDevotional = Instant.now().atOffset(ZoneOffset.UTC).minusDays(4L);
+            var devotionalId = new ContentId("de50378b-d101-4864-bc4d-471a0d03f300");
+            var openDateContent = Instant.now().atOffset(ZoneOffset.UTC).minusDays(4L);
 
-            readingProgress.openDevotional(devotionalId, openDateDevotional);
+            readingProgress.openContent(devotionalId, openDateContent);
 
             var endDate = Instant.now().atOffset(ZoneOffset.UTC).minusDays(2L);
 
             //when/then
-            assertThrows(CannotFinishPlanWithUnreadDevotionalException.class, () -> {
+            assertThrows(CannotFinishPlanWithNotReadContentException.class, () -> {
                 readingProgress.finishPlan(endDate);
             });
         }
 
         @Test
-        void testFailsFinishPlanBeforeDevotionalRead() {
+        void testFailsFinishPlanBeforeContentRead() {
             //given
             var readingProgress = ReadingProgressFactory.startPlan(
                     Instant.now().atOffset(ZoneOffset.UTC).minusDays(10L),
                     Instant.now().atOffset(ZoneOffset.UTC).minusDays(5L)
             );
-            var devotionalId = new DevotionalId("de50378b-d101-4864-bc4d-471a0d03f300");
-            var openDateDevotional = Instant.now().atOffset(ZoneOffset.UTC).minusDays(4L);
+            var devotionalId = new ContentId("de50378b-d101-4864-bc4d-471a0d03f300");
+            var openDateContent = Instant.now().atOffset(ZoneOffset.UTC).minusDays(4L);
 
-            readingProgress.openDevotional(devotionalId, openDateDevotional);
+            readingProgress.openContent(devotionalId, openDateContent);
 
-            var readDateDevotional = Instant.now().atOffset(ZoneOffset.UTC).minusDays(2L);
-            readingProgress.readDevotional(devotionalId, readDateDevotional);
+            var readDateContent = Instant.now().atOffset(ZoneOffset.UTC).minusDays(2L);
+            readingProgress.readContent(devotionalId, readDateContent);
 
             var endDate = Instant.now().atOffset(ZoneOffset.UTC).minusDays(3L);
 

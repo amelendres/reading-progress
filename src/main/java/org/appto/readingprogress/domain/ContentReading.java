@@ -7,31 +7,31 @@ import java.time.OffsetDateTime;
 
 @Entity
 @Table(name="T_CONTENT_READING")
-public class DevotionalReading {
+public class ContentReading {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="ID")
     private Long entityId;
     @Embedded
-    @AttributeOverride(name="value",column=@Column(name="DEVOTIONAL_ID"))
-    private DevotionalId devotionalId;
+    @AttributeOverride(name="value",column=@Column(name="CONTENT_ID"))
+    private ContentId contentId;
     private OffsetDateTime lastOpenedDate;
     private OffsetDateTime readDate;
 
-    public DevotionalReading() {
+    public ContentReading() {
     }
 
-    public DevotionalReading(
-            DevotionalId devotionalId,
+    public ContentReading(
+            ContentId contentId,
             OffsetDateTime lastOpenedDate
     ) {
-        this.devotionalId = devotionalId;
+        this.contentId = contentId;
         this.lastOpenedDate = lastOpenedDate;
     }
 
     public void open(OffsetDateTime openDate) {
         if (openDate.isBefore(lastOpenedDate)) {
-            throw new CannotOpenDevotionalOnThePastException(devotionalId, openDate);
+            throw new CannotOpenContentOnThePastException(contentId, openDate);
         }
 
         lastOpenedDate = openDate;
@@ -39,7 +39,7 @@ public class DevotionalReading {
 
     public void read(OffsetDateTime readDate) {
         if (isRead()) {
-            throw new AlreadyReadDevotionalException(devotionalId());
+            throw new AlreadyReadContentException(contentId());
         }
 
         this.readDate = readDate;
@@ -53,8 +53,8 @@ public class DevotionalReading {
         return null != readDate;
     }
 
-    public DevotionalId devotionalId() {
-        return devotionalId;
+    public ContentId contentId() {
+        return contentId;
     }
 
     public OffsetDateTime lastOpenedDate() {

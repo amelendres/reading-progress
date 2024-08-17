@@ -10,6 +10,6 @@ public record ReadingProgressView(
         String lastOpenedDate,
         String startDate,
         String endDate,
-        List<DevotionalReadingView> devotionalReadings
+        List<ContentReadingView> devotionalReadings
 ) {
 }

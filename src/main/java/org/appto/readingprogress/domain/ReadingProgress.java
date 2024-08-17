@@ -4,25 +4,26 @@ import jakarta.persistence.*;
 
 import java.time.OffsetDateTime;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 @Entity
 @Table(name = "T_READING_PROGRESS")
 public class ReadingProgress {
     @EmbeddedId
-    @AttributeOverride(name="value",column=@Column(name="ID"))
+    @AttributeOverride(name = "value", column = @Column(name = "ID"))
     private ReadingProgressId id;
     @Embedded
-    @AttributeOverride(name="value",column=@Column(name="PLAN_ID"))
+    @AttributeOverride(name = "value", column = @Column(name = "PLAN_ID"))
     private PlanId planId;
     private OffsetDateTime lastOpenedDate;
     private OffsetDateTime startDate;
     private OffsetDateTime endDate;
     @OneToMany
     @JoinColumn(name = "READING_PROGRESS_ID")
-    private Set<DevotionalReading> devotionalReadings = new HashSet<>();
+    private Set<ContentReading> contentReadings = new HashSet<>();
     @Embedded
-    @AttributeOverride(name="value",column=@Column(name="READER_ID"))
+    @AttributeOverride(name = "value", column = @Column(name = "READER_ID"))
     private ReaderId readerId;
 
     public ReadingProgress() {
@@ -40,12 +41,12 @@ public class ReadingProgress {
 
     public void openPlan(OffsetDateTime openedDate) {
 
-        if (!isOpened()){
+        if (!isOpened()) {
             lastOpenedDate = openedDate;
             return;
         }
 
-        if(openedDate.isBefore(lastOpenedDate)) {
+        if (openedDate.isBefore(lastOpenedDate)) {
             throw new CannotOpenPlanOnThePastException(planId);
         }
 
@@ -64,44 +65,42 @@ public class ReadingProgress {
         this.startDate = startDate;
     }
 
-    public void openDevotional(DevotionalId devotionalId, OffsetDateTime openDate) {
+    public void openContent(ContentId contentId, OffsetDateTime openDate) {
         if (!isStarted()) {
-            throw new CannotOpenDevotionalUnStartedPlanException(planId());
+            throw new CannotOpenContentOnNotStartedPlanException(planId());
         }
 
         if (openDate.isBefore(startDate)) {
-            throw new CannotOpenDevotionalBeforeStartPlanException(planId());
+            throw new CannotOpenContentBeforePlanStartDateException(planId());
         }
 
-        var devotionalReading = devotionalReading(devotionalId);
-
-        if (null != devotionalReading) {
-            devotionalReading.open(openDate);
-        } else {
-            devotionalReading = new DevotionalReading(devotionalId, openDate);
-            devotionalReadings.add(devotionalReading);
-        }
+        var contentReading = contentReadingOptional(contentId).orElse(new ContentReading(contentId, openDate));
+        contentReading.open(openDate);
+        contentReadings.add(contentReading);
     }
 
-    public void readDevotional(DevotionalId devotionalId, OffsetDateTime readDate) {
-        var devotionalReading = devotionalReading(devotionalId);
-        if (null == devotionalReading) {
-            throw new DevotionalReadingNotFoundException(devotionalId);
+    public void readContent(ContentId contentId, OffsetDateTime readDate) {
+        var contentReading = contentReading(contentId);
+
+        if (readDate.isBefore(contentReading.lastOpenedDate())) {
+            throw new CannotReadContentBeforeOpenItException(contentId);
         }
 
-        if (readDate.isBefore(devotionalReading.lastOpenedDate())) {
-            throw new CannotReadDevotionalBeforeOpenDevotionalException(devotionalId);
-        }
-
-        devotionalReading.read(readDate);
+        contentReading.read(readDate);
     }
 
-    public DevotionalReading devotionalReading(DevotionalId devotionalId) {
+    private Optional<ContentReading> contentReadingOptional(ContentId contentId) {
 
-        return devotionalReadings.stream()
-                .filter(dev -> dev.devotionalId().equals(devotionalId))
-                .findFirst().orElse(null)
-                ;
+        return contentReadings.stream()
+                .filter(item -> item.contentId().equals(contentId))
+                .findFirst();
+    }
+
+    public ContentReading contentReading(ContentId contentId) {
+
+        return contentReadings.stream()
+                .filter(item -> item.contentId().equals(contentId))
+                .findFirst().orElseThrow(() -> new ContentReadingNotFoundException(contentId));
     }
 
     public void finishPlan(OffsetDateTime endDate) {
@@ -113,16 +112,16 @@ public class ReadingProgress {
             throw new CannotFinishPlanBeforeStartDateException(planId());
         }
 
-        if (devotionalReadings.isEmpty()) {
-            throw new CannotFinishPlanWithoutDevotionalsException(planId());
+        if (contentReadings.isEmpty()) {
+            throw new CannotFinishPlanWithEmptyContentReadingsException(planId());
         }
 
-        for (DevotionalReading devotionalReading : devotionalReadings) {
-            if (!devotionalReading.isRead()) {
-                throw new CannotFinishPlanWithUnreadDevotionalException(planId());
+        for (ContentReading contentReading : contentReadings) {
+            if (!contentReading.isRead()) {
+                throw new CannotFinishPlanWithNotReadContentException(planId());
             }
 
-            if (endDate.isBefore(devotionalReading.readDate())) {
+            if (endDate.isBefore(contentReading.readDate())) {
                 throw new CannotFinishPlanBeforeReadDateException(planId());
             }
         }
@@ -162,8 +161,8 @@ public class ReadingProgress {
         return endDate;
     }
 
-    public Set<DevotionalReading> devotionalReadings() {
-        return devotionalReadings;
+    public Set<ContentReading> contentReadings() {
+        return contentReadings;
     }
 
     public ReaderId readerId() {

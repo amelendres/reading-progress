@@ -3,7 +3,8 @@
 
 ### Api
 
-1. Open Plan
+1. Open Plan 
+2. Get Reading Progress
 
 
 
